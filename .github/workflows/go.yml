@@ -24,7 +24,9 @@ jobs:
 
     - name: Go-Linty
       uses: ArangoGutierrez/GoLinty-Action@go-1.13rc1-alpine
-  
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Get dependencies
       run: |
         go get -v -t -d ./...
