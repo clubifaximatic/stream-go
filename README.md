@@ -2,6 +2,8 @@
 
 A Stream library fo Go
 
+## What to do now?
+
 Create a Stream
 ```go
 import (
@@ -83,7 +85,8 @@ func main() {
 ```
 
 
-Things to do:
+# What is missing?
+
 * finish gracefully
 * test
 * stream connectors for slices, etc
