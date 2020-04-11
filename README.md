@@ -2,7 +2,7 @@
 
 A Stream library fo Go
 
-## What to do now?
+## How to create a stream?
 
 Create a Stream
 ```go
@@ -11,6 +11,27 @@ import (
 )
 
 stream := streams.NewStream()
+```
+
+Create a Stream from a slice
+```go
+slice := []interface{}{1, 2}
+stream := streams.NewStreamFromSlice(slice)
+```
+
+Create a Stream from a feeder function
+```go
+current := 0
+
+next := func() interface{} {
+    current++
+    if current > 50 {
+        return nil
+    }
+    return current
+}
+
+stream := streams.NewStreamFromFeeder()
 ```
 
 There is an interface:
@@ -24,10 +45,13 @@ type Stream interface {
 	Skip(n int) Stream
 	Limit(n int) Stream
 	ForEach(fn StreamForEachFunction)
+	
+    Push(e interface{})
 }
 ```
 
-Use it:
+## Example
+
 ```go
 package main
 
@@ -76,19 +100,16 @@ func main() {
 		})
 
 	// start feeding the stream
-	for i := 1; i < 1000; i++ {
-		stream.Push("string")
-		stream.Push(i * 3)
-		stream.Push(i * 3)
+	for i := 1; i < 50; i++ {
+		stream.Push(i)
 	}
 }
 ```
 
 
-# What is missing?
+## What is missing?
 
-* finish gracefully
+* finish gracefully, wait
 * test
-* stream connectors for slices, etc
 * merge/split streams
 * parallel execution
