@@ -4,7 +4,7 @@ type StreamFilterFunction func(interface{}) bool
 type StreamForEachFunction func(interface{})
 type StreamMapFunction func(interface{}) interface{}
 type StreamFlatMapFunction func(interface{}) []interface{}
-type StreamPeekFunction func(interface{}) interface{}
+type StreamPeekFunction func(interface{})
 
 type Stream interface {
 	Filter(fn StreamFilterFunction) Stream
@@ -14,8 +14,9 @@ type Stream interface {
 	Distinct() Stream
 	Skip(n int) Stream
 	Limit(n int) Stream
-
 	ForEach(fn StreamForEachFunction)
+
+	Push(e interface{})
 }
 
 type stream struct {
@@ -24,17 +25,11 @@ type stream struct {
 	next *stream
 }
 
-func NewStream() *stream {
-
-	return &stream{
-		in: make(chan interface{}),
-	}
-}
-
 func (s *stream) Filter(fn StreamFilterFunction) Stream {
 	nextStream := s.nextStream()
 
 	go func() {
+		defer close(s.out)
 		for e := range s.in {
 			if fn(e) {
 				s.out <- e
@@ -49,6 +44,7 @@ func (s *stream) Map(fn StreamMapFunction) Stream {
 	nextStream := s.nextStream()
 
 	go func() {
+		defer close(s.out)
 		for e := range s.in {
 			s.out <- fn(e)
 		}
@@ -61,6 +57,7 @@ func (s *stream) FlatMap(fn StreamFlatMapFunction) Stream {
 	nextStream := s.nextStream()
 
 	go func() {
+		defer close(s.out)
 		for e := range s.in {
 			items := fn(e)
 			for item := range items {
@@ -73,19 +70,24 @@ func (s *stream) FlatMap(fn StreamFlatMapFunction) Stream {
 }
 
 func (s *stream) Peek(fn StreamPeekFunction) Stream {
+	nextStream := s.nextStream()
+
 	go func() {
+		defer close(s.out)
 		for e := range s.in {
 			fn(e)
+			s.out <- e
 		}
 	}()
 
-	return s
+	return nextStream
 }
 
 func (s *stream) Distinct() Stream {
 	nextStream := s.nextStream()
 
 	go func() {
+		defer close(s.out)
 		elements := make(map[interface{}]struct{})
 		for e := range s.in {
 			if _, ok := elements[e]; ok {
@@ -103,6 +105,7 @@ func (s *stream) Skip(n int) Stream {
 	nextStream := s.nextStream()
 
 	go func() {
+		defer close(s.out)
 		remain := n
 		for e := range s.in {
 			if remain > 0 {
@@ -120,6 +123,7 @@ func (s *stream) Limit(n int) Stream {
 	nextStream := s.nextStream()
 
 	go func() {
+		defer close(s.out)
 		remain := n
 		for e := range s.in {
 			if remain <= 0 {
@@ -145,8 +149,15 @@ func (s *stream) Push(e interface{}) {
 	s.in <- e
 }
 
+func newStream() *stream {
+	return &stream{
+		in: make(chan interface{}),
+	}
+}
+
 func (s *stream) nextStream() *stream {
-	nextStream := NewStream()
+	nextStream := newStream()
 	s.out = nextStream.in
 	return nextStream
 }
+

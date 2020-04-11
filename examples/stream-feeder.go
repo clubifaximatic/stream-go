@@ -2,13 +2,25 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	streams "github.com/clubifaximatic/stream-go"
 )
 
 func main() {
+
+	current := 0
+
+	next := func() interface{} {
+		current++
+		if current > 50 {
+			return nil
+		}
+		return current
+	}
+
 	// Create the stream
-	stream := streams.NewStream()
+	stream := streams.NewStreamFromFeeder(next)
 
 	stream.
 		// filter only even numbers
@@ -47,8 +59,6 @@ func main() {
 			fmt.Println(e)
 		})
 
-	// start feeding the stream
-	for i := 1; i < 50; i++ {
-		stream.Push(i)
-	}
+	time.Sleep(5 * time.Second)
+	fmt.Println("done!")
 }

@@ -2,13 +2,20 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	streams "github.com/clubifaximatic/stream-go"
 )
 
 func main() {
+	// create slice
+	var slice []interface{}
+	for i := 1; i < 50; i++ {
+		slice = append(slice, i)
+	}
+
 	// Create the stream
-	stream := streams.NewStream()
+	stream := streams.NewStreamFromSlice(slice)
 
 	stream.
 		// filter only even numbers
@@ -47,8 +54,6 @@ func main() {
 			fmt.Println(e)
 		})
 
-	// start feeding the stream
-	for i := 1; i < 50; i++ {
-		stream.Push(i)
-	}
+	time.Sleep(5 * time.Second)
+	fmt.Println("done!")
 }
