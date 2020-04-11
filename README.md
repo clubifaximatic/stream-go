@@ -50,7 +50,8 @@ type Stream interface {
 }
 ```
 
-Use it:
+## Example
+
 ```go
 package main
 
@@ -106,7 +107,7 @@ func main() {
 ```
 
 
-# What is missing?
+## What is missing?
 
 * finish gracefully, wait
 * test
